@@ -81,7 +81,6 @@ Springs.prototype = {
 	ctx.closePath();
 	ctx.fill();
 
-
 	// var d = this.getDirection();
 	// ctx.beginPath();
 	// ctx.moveTo(c.x,c.y);
@@ -184,24 +183,26 @@ SpringBox.prototype.getDirection = function () {
 
 
 
-function SpringCircle(x, y, r, count) {
+function SpringCircle(x, y, r, count, dist) {
     var center = new Point(x, y);
     this.addPoint(center);
     
     var theta = 0;
     var dtheta = (Math.PI*2) / count;
-    var lastPoint = new Point(r*Math.cos(theta)+center.pos.x, r*Math.sin(theta)+center.pos.y);
-    this.addPoint(lastPoint);
-    this.addConstraint(center, lastPoint, r)
-    for (var i = 0; i < count; ++i) {
+    for (var i = 1; i <= count; ++i) {
 	theta += dtheta;
 	var p = new Point(r*Math.cos(theta)+center.pos.x, r*Math.sin(theta)+center.pos.y);
 	this.addPoint(p);
-	this.addConstraint(center, p, r)	
-	this.addConstraint(p, lastPoint, p.pos.sub(lastPoint.pos).length());
-	lastPoint = p;
+	this.addConstraint(center, p, r);
+	if (i > 1) this.addConstraint(p, this.points[i-1], p.pos.sub(this.points[i-1].pos).length());
+	if (i > dist) this.addConstraint(p, this.points[i-dist], p.pos.sub(this.points[i-dist].pos).length());
     }
-    this.addConstraint(this.points[1], lastPoint, p.pos.sub(lastPoint.pos).length());
+
+    // tie up end points
+    this.addConstraint(this.points[1], this.points[count], this.points[1].pos.sub(this.points[count].pos).length());
+    for (var i = 1; i <= dist; ++i) {
+	this.addConstraint(this.points[i], this.points[count+i-dist], this.points[i].pos.sub(this.points[count+i-dist].pos).length());
+    }
 }
 
 SpringCircle.prototype = new Springs();
@@ -249,7 +250,7 @@ Physics.prototype = {
 	    var constraint = springs.constraints[k];
 	    var dir = constraint.p2.pos.sub(constraint.p1.pos);
 	    var l = dir.length();
-	    var diff = (l - constraint.dist) * 0.5 / l;
+	    var diff = (l - constraint.dist) * 0.44 / l;
 
 	    constraint.p1.pos = constraint.p1.pos.add(dir.mul(diff));
 	    constraint.p2.pos = constraint.p2.pos.sub(dir.mul(diff));

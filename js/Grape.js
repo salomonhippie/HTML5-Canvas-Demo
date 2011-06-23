@@ -52,7 +52,7 @@ function Grape (phys) {
 
     // spring box
     // this.box = new SpringBox(100, 30, this.imgBody.width, this.imgBody.height);
-    this.box = new SpringCircle(50, 50,  this.imgBody.height*0.6, 5);
+    this.box = new SpringCircle(50, 50,  this.imgBody.height*0.6, 15, 5);
     this.drawBox = true;
 
     // box center used to compute movement direction
@@ -85,7 +85,8 @@ Grape.prototype.draw = function(ctx) {
 
     if (Math.abs(dir.x) > 0.01 && dir.length() > 0.01) {
 	var angle = Math.atan(dir.y / dir.x);
-	ctx.rotate(angle);
+	if (Math.abs(angle) < Math.PI/6)
+	    ctx.rotate(angle);
     }
     ctx.transform(this.facing, 0, 0, 1, 0, 0);
     
@@ -139,9 +140,10 @@ Grape.prototype.move = function(dir) {
 }
 
 Grape.prototype.jump = function() {
-    // if (this.box.getVelocity().y == 0) {
+    const eps = 2.0;
+    if (Math.abs(this.box.points[0].pos.y - this.box.points[0].prevPos.y) < eps) {
 	this.jumpTime = 0;
-    // }
+    }
 }
 
 Grape.prototype.fire = function(phys) {
@@ -152,13 +154,13 @@ Grape.prototype.fire = function(phys) {
     var angle = this.angle + Math.PI / 2.0;
     var dir = new Vector((-this.facing) * Math.cos(angle), 
     			 -Math.sin(angle));
-    this.missile.prevPos = this.missile.pos.sub(dir.mul(80.));
+    this.missile.prevPos = this.missile.pos.sub(dir.mul(90.));
     this.missile.active = true;
 }
 
 Grape.prototype.update = function(dt) {
     this.time += this.moveDir * dt;
-    const moveSpeed = 2200.0;
+    const moveSpeed = 3000.0;
     const rotateSpeed = 5.00;
     
     const footSpeed = 20;
@@ -167,7 +169,7 @@ Grape.prototype.update = function(dt) {
     if (this.jumpTime != null) {
 	this.jumpTime += dt;
 	this.box.addForce(new Vector(0,-9000.));
-	if (this.jumpTime > 0.100) 
+	if (this.jumpTime > 0.150) 
 	    this.jumpTime = null;
     }
     // rotate aim

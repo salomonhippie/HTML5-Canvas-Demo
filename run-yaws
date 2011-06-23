@@ -1,2 +1,2 @@
 #!/bin/bash
-/home/salomon/yaws-1.89/bin/yaws --conf /home/salomon/html5/grapes/yaws.conf --id grapes
+yaws --conf yaws.conf --id grapes
